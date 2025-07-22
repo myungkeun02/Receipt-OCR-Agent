@@ -15,35 +15,5 @@ requests==2.31.0
 # === AI/ML Services ===
 openai>=1.0.0
 
-# === 차세대 기능 추가 의존성 ===
-# Async Support
-asyncio-tools==0.1.2
-
-# Scientific Computing (Edge AI용)
-numpy>=1.21.0
-
-# Redis Caching
+# === Redis Caching ===
 redis>=4.0.0
-
-# Audio Processing (멀티모달 AI용)
-speechrecognition>=3.10.0
-
-# Enterprise Security
-cryptography>=3.4.8
-
-# 데이터 분석 & BI
-pandas>=1.5.0
-matplotlib>=3.5.0
-
-# 백그라운드 작업 (스트림 처리용)
-celery>=5.2.0
-
-# === Optional Dependencies ===
-# For better JSON handling (if needed)
-# ujson>=5.0.0
-
-# For enhanced logging (if needed)
-# coloredlogs>=15.0
-
-# For data validation (if needed)
-# pydantic>=2.0.0

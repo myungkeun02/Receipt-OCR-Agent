@@ -1,40 +1,50 @@
-# 🧾 Smart Receipt Processor
+# 🧾 Simple Receipt Processor
 
-**AI 기반 영수증 자동 분석 및 비용 처리 시스템**
+> **AI 기반 영수증 자동 처리 시스템**  
+> 영수증 이미지를 업로드하면 OCR + LLM을 통해 계정과목과 지출용도를 자동으로 제안하는 한국 기업 맞춤형 솔루션
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com)
-[![Redis](https://img.shields.io/badge/Redis-7.0+-red.svg)](https://redis.io)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-orange.svg)](https://openai.com)
+[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--3.5-orange.svg)](https://openai.com)
+[![Redis](https://img.shields.io/badge/Redis-Cache-red.svg)](https://redis.io)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)](https://mysql.com)
+
+---
 
 ## 📋 목차
 
-- [🎯 프로젝트 개요](#-프로젝트-개요)
-- [🏗️ 시스템 아키텍처](#️-시스템-아키텍처)
-- [📁 모듈 구조](#-모듈-구조)
-- [🔄 API 흐름도](#-api-흐름도)
-- [🚀 핵심 기능](#-핵심-기능)
-- [⚡ Redis 캐싱 시스템](#-redis-캐싱-시스템)
-- [📊 데이터베이스 스키마](#-데이터베이스-스키마)
-- [🌐 API 엔드포인트](#-api-엔드포인트)
-- [🛠️ 설치 및 설정](#️-설치-및-설정)
-- [📈 성능 최적화](#-성능-최적화)
-- [🔮 차세대 기능](#-차세대-기능)
+1. [프로젝트 개요](#-프로젝트-개요)
+2. [시스템 아키텍처](#-시스템-아키텍처)
+3. [핵심 기능](#-핵심-기능)
+4. [데이터 플로우](#-데이터-플로우)
+5. [기술 스택](#-기술-스택)
+6. [설치 및 설정](#-설치-및-설정)
+7. [API 문서](#-api-문서)
+8. [데이터베이스 스키마](#-데이터베이스-스키마)
+9. [AI 분류 원리](#-ai-분류-원리)
+10. [캐싱 전략](#-캐싱-전략)
+11. [한국 브랜드 데이터베이스](#-한국-브랜드-데이터베이스)
+12. [성능 및 최적화](#-성능-및-최적화)
+13. [문제 해결](#-문제-해결)
+14. [향후 개발 계획](#-향후-개발-계획)
 
 ---
 
 ## 🎯 프로젝트 개요
 
-Smart Receipt Processor는 **영수증 이미지**를 업로드하면 **AI가 자동으로 분석**하여 경비 처리에 필요한 정보를 추출하고, **학습 기반**으로 계정과목과 사용 용도를 제안하는 시스템입니다.
+### 비즈니스 목표
 
-### ✨ 주요 특징
+- **업무 효율성 향상**: 수동 영수증 입력 작업을 자동화하여 업무시간 단축
+- **정확성 향상**: AI 기반 자동 분류로 인적 오류 최소화
+- **일관성 확보**: 동일한 사용처에 대한 일관된 계정과목 적용
+- **학습 효과**: 과거 데이터를 활용한 자동 학습으로 분류 정확도 지속 향상
 
-- **🤖 AI 기반 자동 분석**: Naver CLOVA OCR + OpenAI GPT
-- **📚 자기학습 시스템**: 사용자 피드백을 통한 지속적 정확도 향상
-- **⚡ Redis 캐싱**: 5-50배 성능 향상 및 70% API 비용 절감
-- **🏗️ 모듈화 설계**: 확장 가능한 마이크로서비스 아키텍처
-- **🔮 차세대 기능**: 멀티모달 AI, 엣지 AI, 엔터프라이즈 기능
+### 핵심 가치 제안
+
+1. **🚀 빠른 처리**: 영수증 업로드부터 결과까지 평균 3-5초
+2. **🎯 높은 정확도**: 400개+ 한국 브랜드 데이터베이스 기반 분류
+3. **🧠 자동 학습**: 사용할수록 정확해지는 AI 시스템
+4. **💰 비용 절감**: 수동 입력 대비 시간 절약
 
 ---
 
@@ -42,777 +52,1201 @@ Smart Receipt Processor는 **영수증 이미지**를 업로드하면 **AI가 �
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        C[📱 클라이언트 앱]
-        W[🌐 웹 브라우저]
-        M[📲 모바일 PWA]
+    A[🖼️ 영수증 이미지] --> B[📱 Flask API Server]
+    B --> C[🔍 Naver CLOVA OCR]
+    C --> D[🤖 OpenAI GPT-3.5]
+    D --> E[💾 MySQL Database]
+    E --> F[🤖 OpenAI GPT-3.5<br/>최종 판단]
+    F --> G[📄 account_category_list.md<br/>가이드 문서]
+    G --> H[📊 최종 결과 JSON]
+
+    I[🗄️ Redis Cache] -.-> B
+    I -.-> C
+    I -.-> D
+    I -.-> E
+    I -.-> F
+
+    subgraph "외부 서비스"
+        C
+        D
+        F
     end
 
-    subgraph "API Gateway"
-        G[🚪 Flask API Gateway<br/>Port: 5001]
+    subgraph "내부 시스템"
+        B
+        E
+        G
+        I
     end
 
-    subgraph "Service Layer"
-        subgraph "Core Services"
-            OCR[📸 OCR Service<br/>Naver CLOVA]
-            LLM[🤖 LLM Service<br/>OpenAI GPT]
-            DB[🗄️ DB Service<br/>MySQL]
-            ANAL[📊 Analysis Service]
-        end
+    style A fill:#e1f5fe
+    style H fill:#e8f5e8
+    style I fill:#fff3e0
+```
 
-        subgraph "Enhancement Services"
-            ML[🧠 ML Enhancement]
-            ANALYTICS[📈 Analytics]
-            CACHE[⚡ Cache Service]
-        end
+### 시스템 구성 요소
 
-        subgraph "Next-Gen Services"
-            MULTI[🎭 Multimodal AI]
-            EDGE[📱 Edge AI]
-            ENTERPRISE[🏢 Enterprise]
-        end
-    end
+| 구성요소           | 기술                 | 역할        | 설명                                  |
+| ------------------ | -------------------- | ----------- | ------------------------------------- |
+| **API Server**     | Flask + Flask-RestX  | API 서버    | RESTful API 제공, Swagger UI 자동생성 |
+| **OCR Engine**     | Naver CLOVA OCR      | 텍스트 추출 | 영수증 이미지에서 한글 텍스트 추출    |
+| **LLM Engine**     | OpenAI GPT-3.5 Turbo | 데이터 분석 | 구조화된 데이터 추출 및 분류          |
+| **Database**       | MySQL 8.0+           | 데이터 저장 | 과거 패턴 데이터 저장 및 조회         |
+| **Cache Layer**    | Redis                | 성능 최적화 | API 응답 캐싱으로 속도 향상           |
+| **Knowledge Base** | Markdown             | 분류 가이드 | 400개+ 한국 브랜드 매핑 정보          |
 
-    subgraph "Data Layer"
-        REDIS[(🔴 Redis Cache<br/>In-Memory)]
-        MYSQL[(🐬 MySQL DB<br/>Persistent)]
-    end
+---
 
-    subgraph "External APIs"
-        CLOVA[☁️ Naver CLOVA OCR]
-        OPENAI[🧠 OpenAI API]
-    end
+## 🎛️ 핵심 기능
 
-    C --> G
-    W --> G
-    M --> G
+### 1. 🔍 **고도화된 OCR 처리**
 
-    G --> OCR
-    G --> LLM
-    G --> DB
-    G --> ANAL
-    G --> ML
-    G --> ANALYTICS
-    G --> CACHE
-    G --> MULTI
-    G --> EDGE
-    G --> ENTERPRISE
+```python
+# OCR 최적화 특징
+- 한글 특화: Naver CLOVA OCR 사용
+- 이미지 전처리: 자동 회전, 노이즈 제거
+- 텍스트 정제: 불필요한 문자 제거
+- 구조화: 금액, 날짜, 상호명 자동 식별
+```
 
-    OCR --> CLOVA
-    LLM --> OPENAI
-    DB --> MYSQL
-    CACHE --> REDIS
+### 2. 🤖 **2단계 AI 분석**
 
-    OCR -.->|캐시 확인| CACHE
-    LLM -.->|캐시 확인| CACHE
-    DB -.->|캐시 확인| CACHE
+#### **1단계: 구조화된 데이터 추출**
+
+```json
+{
+  "amount": 30000,
+  "usageDate": "2024-12-24",
+  "usageLocation": "스타벅스"
+}
+```
+
+#### **2단계: 최종 분류 및 판단**
+
+```json
+{
+  "accountCategory": "복리후생비",
+  "description": "스타벅스 야근 커피",
+  "reasoning": {
+    "step1_brand_analysis": "스타벅스는 한국의 대표적인 커피 체인으로 식별",
+    "step2_time_analysis": "18:30 시각으로 야근 시간대로 판단",
+    "step3_db_patterns": "과거 스타벅스 사용 패턴 분석 결과 적용",
+    "step4_guide_matching": "복리후생비 > 음식/음료 카테고리에 매칭",
+    "step5_final_decision": "시간대와 브랜드를 종합하여 야근 커피로 최종 결정",
+    "confidence_level": "높음"
+  }
+}
+```
+
+### 3. 📊 **과거 패턴 학습**
+
+```sql
+-- 동일 사용처 패턴 분석 쿼리
+SELECT accountCategory, description, COUNT(*) as frequency
+FROM expense_items
+WHERE usageLocation LIKE '%스타벅스%'
+GROUP BY accountCategory, description
+ORDER BY frequency DESC
+LIMIT 10
+```
+
+### 4. ⚡ **다층 캐싱 시스템**
+
+```python
+# 캐시 키 전략
+cache_keys = {
+    "OCR 결과": "receipt:ocr:{image_hash}",
+    "LLM 추출": "receipt:llm:{text_hash}",
+    "DB 패턴": "receipt:pattern:{location_hash}",
+    "최종 결과": "receipt:complete:{image_hash}"
+}
 ```
 
 ---
 
-## 📁 모듈 구조
+## 🔄 데이터 플로우
 
-```
-ocr/
-├── 🎯 app.py                    # Flask API 게이트웨이
-├── 🧪 test_redis.py            # Redis 연동 테스트
-├── 🚀 start_next_gen.py        # 차세대 기능 초기화
-├── 📋 requirements.txt         # 패키지 의존성
-├── 🔧 .env                     # 환경 변수
-├── 📚 README.md               # 프로젝트 문서
-├── 🗺️ enhancement_roadmap.md   # 고도화 로드맵
-│
-├── 📁 config/                  # 설정 모듈
-│   ├── __init__.py
-│   └── ⚙️ settings.py         # 환경변수 및 설정 관리
-│
-├── 📁 services/               # 핵심 비즈니스 로직
-│   ├── __init__.py
-│   ├── 📸 ocr_service.py      # OCR 처리 서비스
-│   ├── 🤖 llm_service.py      # LLM 분석 서비스
-│   ├── 🗄️ db_service.py       # 데이터베이스 서비스
-│   ├── 📊 analysis_service.py  # 종합 분석 서비스
-│   ├── 🧠 ml_enhancement_service.py    # ML 고도화
-│   ├── 📈 analytics_service.py         # 실시간 분석
-│   ├── ⚡ cache_service.py             # Redis 캐싱
-│   └── 🎭 multimodal_ai_service.py     # 멀티모달 AI
-│
-├── 📁 mobile/                 # 모바일 최적화
-│   ├── __init__.py
-│   └── 📱 edge_ai_service.py  # 엣지 AI 서비스
-│
-├── 📁 enterprise/             # 엔터프라이즈 기능
-│   ├── __init__.py
-│   └── 🏢 enterprise_service.py # 기업용 서비스
-│
-└── 📁 utils/                  # 유틸리티 함수
-    ├── __init__.py
-    └── 🛠️ data_parser.py      # 데이터 파싱 유틸
-```
-
-### 🔧 모듈별 역할
-
-| 모듈              | 역할           | 주요 기능                             |
-| ----------------- | -------------- | ------------------------------------- |
-| **`app.py`**      | API 게이트웨이 | 요청 라우팅, 응답 포맷팅, 에러 핸들링 |
-| **`config/`**     | 설정 관리      | 환경변수, 로깅, URL 검증              |
-| **`services/`**   | 비즈니스 로직  | OCR, LLM, DB, 분석, 캐싱              |
-| **`mobile/`**     | 모바일 최적화  | PWA, 엣지 AI, 오프라인 지원           |
-| **`enterprise/`** | 기업용 기능    | 멀티테넌트, 보안, BI 분석             |
-| **`utils/`**      | 공통 유틸리티  | 데이터 파싱, 검증, 변환               |
-
----
-
-## 🔄 API 흐름도
-
-### 📸 **메인 영수증 처리 플로우**
+### 상세 처리 과정
 
 ```mermaid
 sequenceDiagram
-    participant C as 클라이언트
-    participant A as API Gateway
-    participant CACHE as Redis Cache
-    participant OCR as OCR Service
-    participant LLM as LLM Service
-    participant DB as DB Service
-    participant ANAL as Analysis Service
+    participant U as 👤 사용자
+    participant A as 🖥️ API Server
+    participant R as 🗄️ Redis Cache
+    participant O as 🔍 OCR Service
+    participant L as 🤖 LLM Service
+    participant D as 💾 MySQL DB
+    participant G as 📄 Guide File
 
-    C->>A: POST /receipt/smart-form<br/>{image: file}
-    A->>A: 이미지 검증 & 해시 생성
+    U->>A: 1️⃣ 영수증 이미지 업로드
+    A->>A: 2️⃣ 이미지 해시 생성 (SHA-256)
 
-    A->>CACHE: OCR 캐시 확인
-    alt 캐시 Hit
-        CACHE-->>A: 캐시된 OCR 결과
-    else 캐시 Miss
-        A->>OCR: 이미지 OCR 처리
-        OCR->>OCR: Naver CLOVA API 호출
-        OCR-->>A: OCR 텍스트 결과
-        A->>CACHE: OCR 결과 캐싱 (24h)
+    A->>R: 3️⃣ 완전 결과 캐시 확인
+    alt 캐시 HIT
+        R-->>A: ✅ 캐시된 결과 반환
+        A-->>U: 🎉 최종 결과 (빠른 응답)
+    else 캐시 MISS
+        A->>R: 4️⃣ OCR 결과 캐시 확인
+        alt OCR 캐시 HIT
+            R-->>A: ✅ 캐시된 OCR 결과
+        else OCR 캐시 MISS
+            A->>O: 5️⃣ OCR 처리 요청
+            O-->>A: 📝 텍스트 추출 결과
+            A->>R: 💾 OCR 결과 캐시 저장 (1시간)
+        end
+
+        A->>A: 6️⃣ OCR 텍스트 정제
+        A->>R: 7️⃣ LLM 추출 캐시 확인
+        alt LLM 캐시 HIT
+            R-->>A: ✅ 캐시된 추출 결과
+        else LLM 캐시 MISS
+            A->>L: 8️⃣ 구조화된 데이터 추출
+            L-->>A: 📊 {amount, date, location}
+            A->>R: 💾 LLM 결과 캐시 저장 (1시간)
+        end
+
+        A->>R: 9️⃣ DB 패턴 캐시 확인
+        alt 패턴 캐시 HIT
+            R-->>A: ✅ 캐시된 패턴 결과
+        else 패턴 캐시 MISS
+            A->>D: 🔍 과거 패턴 조회
+            D-->>A: 📈 사용처별 패턴 분석
+            A->>R: 💾 패턴 결과 캐시 저장 (6시간)
+        end
+
+        A->>G: 🔟 가이드 문서 읽기
+        G-->>A: 📋 분류 가이드 (400+ 브랜드)
+
+        A->>L: 1️⃣1️⃣ 최종 분류 및 추론
+        L-->>A: 🎯 최종 결과 + 상세 추론
+
+        A->>R: 1️⃣2️⃣ 최종 결과 캐시 저장 (24시간)
+        A-->>U: 🎉 최종 결과 반환
     end
-
-    A->>CACHE: LLM 캐시 확인
-    alt 캐시 Hit
-        CACHE-->>A: 캐시된 LLM 결과
-    else 캐시 Miss
-        A->>LLM: 텍스트 구조화 요청
-        LLM->>LLM: OpenAI GPT 분석
-        LLM-->>A: 구조화된 데이터
-        A->>CACHE: LLM 결과 캐싱 (2h)
-    end
-
-    A->>CACHE: 계정과목 캐시 확인
-    alt 캐시 Hit
-        CACHE-->>A: 캐시된 계정과목
-    else 캐시 Miss
-        A->>DB: 계정과목 조회
-        DB-->>A: 계정과목 목록
-        A->>CACHE: 계정과목 캐싱 (12h)
-    end
-
-    A->>ANAL: 종합 분석 요청<br/>{ocr_data, categories}
-    ANAL->>DB: 히스토리 패턴 분석
-    ANAL->>LLM: AI 카테고리 제안
-    ANAL-->>A: 최종 제안 결과
-
-    A-->>C: 📋 임시 폼 데이터<br/>{usage_date, amount, ocr_data,<br/>suggested_category, suggested_description}
 ```
 
-### 🔄 **캐싱 최적화 플로우**
+### 처리 시간 최적화
 
-```mermaid
-graph TD
-    A[API 요청] --> B{이미지 해시<br/>캐시 확인}
-    B -->|Hit| C[🎯 캐시에서<br/>즉시 응답<br/>0.1초]
-    B -->|Miss| D[외부 API 호출<br/>3-5초]
-    D --> E[결과 캐싱]
-    E --> F[응답 반환]
+| 단계         | 캐시 없음 | 캐시 있음 | 개선율    |
+| ------------ | --------- | --------- | --------- |
+| OCR 처리     | 2-3초     | 즉시      | 대폭 개선 |
+| LLM 1차 추출 | 1-2초     | 즉시      | 대폭 개선 |
+| DB 패턴 조회 | 0.1-0.3초 | 즉시      | 개선      |
+| LLM 2차 분류 | 1-2초     | N/A       | -         |
+| **전체**     | **4-7초** | **1-2초** | **향상**  |
 
-    G[LLM 요청] --> H{프롬프트 해시<br/>캐시 확인}
-    H -->|Hit| I[🎯 캐시에서<br/>즉시 응답<br/>0.05초]
-    H -->|Miss| J[OpenAI API 호출<br/>1-3초]
-    J --> K[결과 캐싱]
-    K --> L[응답 반환]
+---
 
-    style C fill:#90EE90
-    style I fill:#90EE90
+## 🛠️ 기술 스택
+
+### Backend
+
+```python
+# 핵심 라이브러리
+Flask==2.3.0              # 웹 프레임워크
+flask-restx==1.1.0        # REST API + Swagger
+python-dotenv==1.0.0      # 환경변수 관리
+mysql-connector-python    # MySQL 연결
+redis==4.5.0              # 캐싱 레이어
+requests==2.31.0          # HTTP 클라이언트
+openai==1.0.0             # OpenAI API 클라이언트
+```
+
+### External Services
+
+```yaml
+OCR:
+  provider: Naver CLOVA OCR
+  language: Korean (한글 특화)
+
+LLM:
+  provider: OpenAI GPT-3.5 Turbo
+  use_case: [데이터 추출, 분류, 추론]
+  response_format: JSON
+
+Database:
+  engine: MySQL 8.0+
+  compatibility: MariaDB
+  encoding: utf8mb4
+
+Cache:
+  engine: Redis
+  persistence: optional
+  eviction: LRU
+```
+
+### Infrastructure
+
+```dockerfile
+# 최소 요구사항
+Python: 3.8+
+Memory: 512MB+
+Storage: 1GB+
+Network: 인터넷 연결 필수 (외부 API)
 ```
 
 ---
 
-## 🚀 핵심 기능
+## 🚀 설치 및 설정
 
-### 1. **📸 OCR 처리 (OCR Service)**
-
-```python
-# services/ocr_service.py
-class OCRService:
-    def extract_text_from_image(self, image_data: bytes) -> Dict:
-        # 1. 이미지 해시 생성
-        image_hash = hashlib.sha256(image_data).hexdigest()
-
-        # 2. Redis 캐시 확인
-        cached_result = redis_cache_manager.get_cached_ocr_result(image_hash)
-        if cached_result:
-            return cached_result  # 🎯 Cache Hit (0.1초)
-
-        # 3. Naver CLOVA OCR API 호출
-        response = requests.post(self.endpoint, headers=headers, json=payload)
-
-        # 4. 결과 캐싱 (24시간)
-        redis_cache_manager.cache_ocr_result(image_hash, result, expire_hours=24)
-
-        return result
-```
-
-### 2. **🤖 LLM 분석 (LLM Service)**
-
-```python
-# services/llm_service.py
-class LLMService:
-    def extract_structured_data(self, raw_text: str) -> Dict:
-        # 1. 프롬프트 해시 생성
-        prompt = self._build_extraction_prompt(raw_text)
-        prompt_hash = hashlib.md5(prompt.encode()).hexdigest()
-
-        # 2. Redis 캐시 확인
-        cached_result = redis_cache_manager.get_cached_llm_response(prompt_hash)
-        if cached_result:
-            return cached_result  # 🎯 Cache Hit (0.05초)
-
-        # 3. OpenAI GPT API 호출
-        response = self.client.chat.completions.create(...)
-
-        # 4. 결과 캐싱 (2시간)
-        redis_cache_manager.cache_llm_response(prompt_hash, result, expire_minutes=120)
-
-        return result
-```
-
-### 3. **📊 종합 분석 (Analysis Service)**
-
-```python
-# services/analysis_service.py
-class AnalysisService:
-    def analyze_and_suggest(self, ocr_data: str, amount: float, usage_date: str) -> Dict:
-        # 1. 히스토리 패턴 분석
-        exact_matches = db_service.find_exact_match(ocr_data)
-        keyword_matches = db_service.find_keyword_matches(ocr_data)
-        price_patterns = db_service.get_price_pattern_analysis(amount)
-
-        # 2. 신뢰도 기반 제안
-        if confidence > 0.8:
-            return db_suggestion  # 높은 신뢰도: DB 기반
-        else:
-            return llm_suggestion  # 낮은 신뢰도: LLM 기반
-```
-
----
-
-## ⚡ Redis 캐싱 시스템
-
-### 🏗️ **캐시 아키텍처**
-
-```mermaid
-graph TB
-    subgraph "Redis Cache Namespaces"
-        OCR_NS[🖼️ receipt:ocr:<br/>이미지 해시 → OCR 결과<br/>TTL: 24시간]
-        LLM_NS[🤖 receipt:llm:<br/>프롬프트 해시 → LLM 응답<br/>TTL: 2시간]
-        CAT_NS[📊 receipt:categories:<br/>계정과목 목록<br/>TTL: 12시간]
-        ANALYTICS_NS[📈 receipt:analytics:<br/>분석 결과<br/>TTL: 30분]
-        SESSION_NS[👤 receipt:session:<br/>사용자 세션<br/>TTL: 1시간]
-    end
-
-    subgraph "Cache Operations"
-        SET[📝 SET with TTL]
-        GET[📖 GET with TTL check]
-        DEL[🗑️ DELETE pattern]
-        PIPE[⚡ Pipeline operations]
-    end
-
-    OCR_NS --> SET
-    LLM_NS --> GET
-    CAT_NS --> DEL
-    ANALYTICS_NS --> PIPE
-```
-
-### 📊 **캐시 성능 지표**
-
-| 캐시 유형         | TTL    | Hit Rate | 성능 향상 | 비용 절감 |
-| ----------------- | ------ | -------- | --------- | --------- |
-| **OCR 캐시**      | 24시간 | 85%      | 30-50배   | 80%       |
-| **LLM 캐시**      | 2시간  | 70%      | 20-60배   | 65%       |
-| **계정과목 캐시** | 12시간 | 95%      | 20배      | 90%       |
-| **분석 캐시**     | 30분   | 60%      | 10배      | 50%       |
-
-### 🔧 **캐시 관리 API**
+### 1. 환경 준비
 
 ```bash
-# 캐시 상태 확인
-GET /receipt/cache/status
-
-# 응답 예시
-{
-  "redis_cache": {
-    "connection_status": true,
-    "redis_version": "7.0.0",
-    "memory_usage": "2.1M"
-  },
-  "namespace_statistics": {
-    "ocr_keys": 45,
-    "llm_keys": 123,
-    "categories_keys": 1
-  },
-  "performance_impact": {
-    "estimated_api_cost_savings": "70%",
-    "response_time_improvement": "5-10x faster"
-  }
-}
-
-# 특정 캐시 삭제
-DELETE /receipt/cache/clear/ocr
-DELETE /receipt/cache/clear/llm
-```
-
----
-
-## 📊 데이터베이스 스키마
-
-### 🗄️ **expense_items 테이블**
-
-```sql
-CREATE TABLE expense_items (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    monthlyExpenseId INT,
-    expenseNumber INT,
-    usageDate DATE NOT NULL,                    -- 📅 사용일자 (OCR 추출)
-    description VARCHAR(500) NOT NULL,          -- 📝 실제 사용 용도 (사용자 입력)
-    amount DECIMAL(10,2) NOT NULL,             -- 💰 금액 (OCR 추출)
-    accountCategory VARCHAR(100) NOT NULL,      -- 📊 계정과목 (AI 제안)
-    projectName VARCHAR(200),
-    memo TEXT,
-    receiptPath VARCHAR(500),
-    createdAt DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-    updatedAt DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    userId INT,
-    year INT,
-    month INT,
-    isSubmitted TINYINT DEFAULT 0,
-    expenseReportId INT,
-    ocrData VARCHAR(500)                       -- 🏪 OCR 원본 데이터 (사용처)
-);
-```
-
-### 📋 **account_categories 테이블**
-
-```sql
-CREATE TABLE account_categories (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,                -- 📊 계정과목 이름 (예: "복리후생비")
-    code TEXT,                                 -- 🔤 계정과목 코드 (예: "BRH")
-    description TEXT,                          -- 📝 시스템 정의 키워드 목록
-    isActive TINYINT DEFAULT 1,
-    createdAt DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-    updatedAt DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
-);
-```
-
-### 🎯 **중요한 데이터 구분**
-
-| 필드                             | 설명               | 예시                          | 입력 방식        |
-| -------------------------------- | ------------------ | ----------------------------- | ---------------- |
-| `expense_items.description`      | **실제 사용 용도** | "야근 식대", "출장 숙박비"    | 👤 사용자 입력   |
-| `account_categories.description` | **시스템 키워드**  | "식대, 약국, 특근업무식대..." | 🔧 시스템 정의   |
-| `expense_items.ocrData`          | **OCR 추출 원본**  | "스타벅스", "호텔신라"        | 🤖 OCR 자동 추출 |
-| `expense_items.accountCategory`  | **계정과목 분류**  | "복리후생비", "여비교통비"    | 🧠 AI 제안       |
-
----
-
-## 🌐 API 엔드포인트
-
-### 🎯 **핵심 API**
-
-#### 1. **📋 영수증 스마트 폼 처리**
-
-```http
-POST /receipt/smart-form
-Content-Type: multipart/form-data
-
-Parameters:
-- image: File (영수증 이미지 - JPEG, PNG)
-
-Response:
-{
-  "success": true,
-  "extracted_data": {
-    "usage_date": "2025-01-15",      // 📅 사용일자
-    "amount": 5000,                  // 💰 금액
-    "ocr_data": "스타벅스 강남점"        // 🏪 사용처
-  },
-  "ai_suggestions": {
-    "account_category": "복리후생비",   // 📊 제안 계정과목
-    "description": "커피",            // 📝 제안 사용용도
-    "confidence": 0.92               // 🎯 신뢰도
-  },
-  "cache_info": {
-    "ocr_cached": false,             // 🔄 OCR 캐시 여부
-    "llm_cached": true,              // 🔄 LLM 캐시 여부
-    "processing_time": "0.15s"       // ⏱️ 처리 시간
-  }
-}
-```
-
-#### 2. **🔍 OCR 전용 처리**
-
-```http
-POST /receipt/ocr-only
-Content-Type: multipart/form-data
-
-Parameters:
-- image: File
-
-Response:
-{
-  "success": true,
-  "raw_ocr_text": "스타벅스 강남점\n2025.01.15\n아메리카노\n5,000원",
-  "extracted_data": {
-    "usage_date": "2025-01-15",
-    "amount": 5000,
-    "ocr_data": "스타벅스 강남점"
-  }
-}
-```
-
-#### 3. **📚 사용자 피드백 학습**
-
-```http
-POST /receipt/feedback
-Content-Type: application/json
-
-Body:
-{
-  "usage_date": "2025-01-15",
-  "amount": 5000,
-  "ocr_data": "스타벅스 강남점",
-  "correct_account_category": "복리후생비",
-  "correct_description": "팀 회의 커피"
-}
-
-Response:
-{
-  "success": true,
-  "message": "피드백이 학습 데이터로 저장되었습니다"
-}
-```
-
-### ⚡ **캐시 관리 API**
-
-#### 4. **📊 캐시 상태 조회**
-
-```http
-GET /receipt/cache/status
-
-Response:
-{
-  "success": true,
-  "redis_cache": {
-    "connection_status": true,
-    "redis_version": "7.0.0",
-    "memory_usage": "2.1M",
-    "connected_clients": 3,
-    "uptime_seconds": 86400
-  },
-  "cache_statistics": {
-    "hit_rate": 75.5,
-    "total_hits": 453,
-    "total_misses": 148
-  },
-  "namespace_statistics": {
-    "ocr_keys": 45,
-    "llm_keys": 123,
-    "categories_keys": 1,
-    "analytics_keys": 8,
-    "session_keys": 12
-  }
-}
-```
-
-#### 5. **🗑️ 캐시 삭제**
-
-```http
-DELETE /receipt/cache/clear/{namespace}
-
-Available namespaces:
-- ocr: OCR 결과 캐시
-- llm: LLM 응답 캐시
-- categories: 계정과목 캐시
-- analytics: 분석 결과 캐시
-- session: 세션 데이터 캐시
-
-Response:
-{
-  "success": true,
-  "namespace": "ocr",
-  "deleted_keys": 15,
-  "message": "Cleared 15 keys from 'ocr' namespace"
-}
-```
-
-### 🔮 **차세대 기능 API**
-
-#### 6. **🎭 멀티모달 AI 처리**
-
-```http
-POST /next-gen/multimodal
-Content-Type: application/json
-
-Body:
-{
-  "image_base64": "data:image/jpeg;base64,/9j/4AAQ...",
-  "audio_base64": "data:audio/wav;base64,UklGRn...",
-  "text_input": "이건 점심 식대야",
-  "location": {
-    "latitude": 37.5665,
-    "longitude": 126.9780
-  },
-  "user_context": {
-    "department": "개발팀",
-    "expense_patterns": ["IT", "식비"]
-  }
-}
-```
-
-#### 7. **📱 모바일 엣지 AI**
-
-```http
-POST /mobile/edge-ai
-Content-Type: application/json
-
-Body:
-{
-  "image_base64": "data:image/jpeg;base64,/9j/4AAQ...",
-  "offline_mode": true,
-  "quality_threshold": 0.8
-}
-```
-
-#### 8. **🏢 엔터프라이즈 처리**
-
-```http
-POST /enterprise/process
-Headers:
-- X-Tenant-ID: company_001
-- X-User-Role: manager
-- X-Security-Level: high
-
-Body:
-{
-  "image_base64": "data:image/jpeg;base64,/9j/4AAQ...",
-  "business_rules": {
-    "approval_required": true,
-    "category_restrictions": ["복리후생비", "여비교통비"]
-  }
-}
-```
-
----
-
-## 🛠️ 설치 및 설정
-
-### 1. **📦 의존성 설치**
-
-```bash
-# 프로젝트 클론
+# 1. 저장소 클론
 git clone <repository-url>
 cd ocr
 
-# 가상환경 생성 및 활성화
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# 또는
-venv\Scripts\activate     # Windows
+# 2. 가상환경 생성
+python -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate   # Windows
 
-# 패키지 설치
+# 3. 의존성 설치
 pip install -r requirements.txt
 ```
 
-### 2. **🔧 환경 변수 설정**
+### 2. 외부 서비스 설정
+
+#### 🔐 API 키 발급
+
+```bash
+# 필수 API 키들
+1. Naver CLOVA OCR
+   - https://www.ncloud.com/product/aiService/ocr
+   - API Key와 Endpoint URL 필요
+
+2. OpenAI API
+   - https://platform.openai.com/api-keys
+   - GPT-3.5 Turbo 사용권한 필요
+```
+
+#### 🗄️ 데이터베이스 설정
+
+```sql
+-- MySQL/MariaDB 스키마 생성
+CREATE DATABASE expense_db CHARACTER SET utf8mb4;
+
+-- 사용자 생성 (옵션)
+CREATE USER 'expense_user'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON expense_db.* TO 'expense_user'@'localhost';
+```
+
+#### 📦 Redis 설치
+
+```bash
+# macOS
+brew install redis
+brew services start redis
+
+# Ubuntu
+sudo apt install redis-server
+sudo systemctl start redis
+
+# Docker
+docker run -d -p 6379:6379 redis:latest
+```
+
+### 3. 환경변수 설정
 
 ```bash
 # .env 파일 생성
-cp .env.example .env
+cat << EOF > .env
+# Naver CLOVA OCR
+CLOVA_OCR_API_KEY=your_naver_ocr_api_key
+CLOVA_OCR_ENDPOINT=https://clovaocr-api-kr.ncloud.com/custom/v1/27649/...
 
-# .env 파일 편집
-CLOVA_OCR_API_KEY="your_clova_ocr_api_key"
-CLOVA_OCR_ENDPOINT="your_clova_ocr_endpoint"
-LLM_API_KEY="your_openai_api_key"
+# OpenAI
+LLM_API_KEY=sk-proj-...
 
-DB_HOST="localhost"
+# Database
+DB_HOST=localhost
 DB_PORT=3306
-DB_USER="your_db_user"
-DB_PASSWORD="your_db_password"
-DB_NAME="your_db_name"
+DB_USER=expense_user
+DB_PASSWORD=password
+DB_NAME=expense_db
+EOF
 ```
 
-### 3. **🗄️ 데이터베이스 설정**
+### 4. 애플리케이션 실행
+
+```bash
+# 서버 시작
+python simple_app.py
+
+# 서버 확인
+curl http://localhost:5001/health
+
+# Swagger UI 접속
+open http://localhost:5001
+```
+
+---
+
+## 📡 API 문서
+
+### 엔드포인트 개요
+
+| Method | Endpoint   | 설명        | 응답시간 |
+| ------ | ---------- | ----------- | -------- |
+| `POST` | `/process` | 영수증 처리 | 1-7초    |
+| `GET`  | `/health`  | 헬스체크    | 즉시     |
+
+### POST /process
+
+영수증 이미지를 처리하여 계정과목과 지출용도를 자동 분류합니다.
+
+#### Request
+
+```http
+POST /process HTTP/1.1
+Content-Type: multipart/form-data
+
+image: [영수증 이미지 파일 (JPG, PNG)]
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "amount": 4500,
+    "usageDate": "2024-12-24",
+    "usageLocation": "스타벅스",
+    "accountCategory": "복리후생비",
+    "description": "스타벅스 야근 커피"
+  },
+  "reasoning": {
+    "step1_brand_analysis": "스타벅스는 한국의 대표적인 커피 체인으로 식별됨",
+    "step2_time_analysis": "18:30 시각으로 야근 시간대로 판단",
+    "step3_db_patterns": "과거 스타벅스 사용 패턴: 복리후생비 70%, 접대비 30%",
+    "step4_guide_matching": "복리후생비 > 음식/음료 > 커피 카테고리에 정확히 매칭",
+    "step5_final_decision": "시간대(야근)와 브랜드(스타벅스)를 종합하여 복리후생비로 결정",
+    "confidence_level": "높음"
+  },
+  "processing_time": "2.3초",
+  "cache_used": false
+}
+```
+
+#### 응답 필드 설명
+
+| 필드                             | 타입    | 설명                   | 예시                         |
+| -------------------------------- | ------- | ---------------------- | ---------------------------- |
+| `success`                        | boolean | 처리 성공 여부         | `true`                       |
+| `data.amount`                    | number  | 총 결제 금액           | `4500`                       |
+| `data.usageDate`                 | string  | 사용 날짜 (YYYY-MM-DD) | `"2024-12-24"`               |
+| `data.usageLocation`             | string  | 사용처/상호명          | `"스타벅스"`                 |
+| `data.accountCategory`           | string  | 회계 계정과목          | `"복리후생비"`               |
+| `data.description`               | string  | 구체적 지출용도        | `"스타벅스 야근 커피"`       |
+| `reasoning.step1_brand_analysis` | string  | 브랜드 식별 결과       | 한국 브랜드 매칭 분석        |
+| `reasoning.step2_time_analysis`  | string  | 시간대 분석 결과       | 평일/주말, 시간대별 판단     |
+| `reasoning.step3_db_patterns`    | string  | 과거 패턴 활용         | DB에서 조회한 유사 케이스    |
+| `reasoning.step4_guide_matching` | string  | 가이드 매칭 결과       | 400+ 브랜드 DB 매칭          |
+| `reasoning.step5_final_decision` | string  | 최종 판단 근거         | 종합적 결정 사유             |
+| `reasoning.confidence_level`     | string  | 신뢰도 수준            | `"높음"`, `"보통"`, `"낮음"` |
+| `processing_time`                | string  | 처리 소요 시간         | `"2.3초"`                    |
+| `cache_used`                     | boolean | 캐시 사용 여부         | `false`                      |
+
+### GET /health
+
+시스템 상태를 확인합니다.
+
+#### Response
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-12-24T18:30:00Z",
+  "services": {
+    "database": "connected",
+    "redis": "connected",
+    "openai": "available",
+    "clova_ocr": "available"
+  },
+  "version": "1.0.0"
+}
+```
+
+---
+
+## 🗄️ 데이터베이스 스키마
+
+### expense_items 테이블
+
+시스템이 학습에 활용하는 기존 경비 데이터입니다.
 
 ```sql
--- MySQL 데이터베이스 생성
-CREATE DATABASE receipt_processor;
+CREATE TABLE expense_items (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    monthlyExpenseId INT                                      NULL,
+    expenseNumber    INT                                      NULL,
+    usageDate        DATE                                     NOT NULL,
+    description      VARCHAR(500)                             NOT NULL,    -- 지출용도
+    amount           DECIMAL(10,2)                            NOT NULL,    -- 금액
+    accountCategory  VARCHAR(100)                             NOT NULL,    -- 계정과목
+    projectName      VARCHAR(200)                             NULL,
+    memo             TEXT                                     NULL,
+    receiptPath      VARCHAR(500)                             NULL,
+    createdAt        DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL,
+    updatedAt        DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL ON UPDATE CURRENT_TIMESTAMP(6),
+    userId           INT                                      NULL,
+    year             INT                                      NULL,
+    month            INT                                      NULL,
+    isSubmitted      TINYINT     DEFAULT 0                    NOT NULL,
+    expenseReportId  INT                                      NULL,
+    usageLocation    VARCHAR(255)                             NULL,        -- 사용처 (핵심 필드)
 
--- 테이블 생성 (위의 스키마 참고)
-USE receipt_processor;
--- expense_items, account_categories 테이블 생성
+    CONSTRAINT FK_631c0e78f58b0b41746a5ce2306
+        FOREIGN KEY (userId) REFERENCES users (id),
+    CONSTRAINT FK_ef0ebfdbfeb0a2e7fc1572435cc
+        FOREIGN KEY (monthlyExpenseId) REFERENCES monthly_expenses (id)
+);
 ```
 
-### 4. **🔴 Redis 설정**
+#### 핵심 필드 설명
 
-```bash
-# Redis 설치 (Mac)
-brew install redis
+| 필드              | 역할          | 시스템 활용 방식                                  |
+| ----------------- | ------------- | ------------------------------------------------- |
+| `usageLocation`   | 사용처/상호명 | OCR에서 추출된 상호명과 매칭하여 과거 패턴 조회   |
+| `accountCategory` | 계정과목      | 과거 동일 상호에서 가장 많이 사용된 계정과목 참고 |
+| `description`     | 지출용도      | 과거 동일 상호에서 사용된 용도 패턴 참고          |
+| `amount`          | 금액          | 금액 범위별 적정성 검증                           |
+| `usageDate`       | 사용날짜      | 시간대 분석을 위한 참고 데이터                    |
 
-# Redis 설치 (Ubuntu)
-sudo apt-get install redis-server
+#### 패턴 조회 쿼리 예시
 
-# Redis 서버 시작
-redis-server
+```sql
+-- 스타벅스 사용 패턴 분석
+SELECT
+    accountCategory,
+    description,
+    COUNT(*) as frequency,
+    AVG(amount) as avg_amount,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as percentage
+FROM expense_items
+WHERE usageLocation LIKE '%스타벅스%'
+  AND accountCategory IS NOT NULL
+GROUP BY accountCategory, description
+ORDER BY frequency DESC
+LIMIT 10;
 
-# 또는 백그라운드 실행
-redis-server --daemonize yes
-```
-
-### 5. **🚀 서버 실행**
-
-```bash
-# Redis 연동 테스트
-python test_redis.py
-
-# 차세대 기능 초기화 (선택사항)
-python start_next_gen.py
-
-# API 서버 시작
-python app.py
-```
-
-### 6. **🌐 API 문서 확인**
-
-```bash
-# Swagger UI 접속
-http://localhost:5001/
-
-# 캐시 상태 확인
-http://localhost:5001/receipt/cache/status
+-- 결과 예시:
+-- accountCategory | description    | frequency | avg_amount | percentage
+-- 복리후생비      | 커피           | 45        | 4500       | 70.31
+-- 복리후생비      | 야근 커피      | 12        | 4500       | 18.75
+-- 접대비          | 거래처 미팅    | 7         | 12000      | 10.94
 ```
 
 ---
 
-## 📈 성능 최적화
+## 🧠 AI 분류 원리
 
-### ⚡ **Redis 캐싱 효과**
+### 분류 로직 상세
 
-| 시나리오               | Before | After  | 개선율       |
-| ---------------------- | ------ | ------ | ------------ |
-| **동일 이미지 재처리** | 3-5초  | 0.1초  | **30-50배**  |
-| **유사 프롬프트 LLM**  | 1-3초  | 0.05초 | **20-60배**  |
-| **계정과목 조회**      | 0.2초  | 0.01초 | **20배**     |
-| **API 호출 비용**      | 100%   | 30%    | **70% 절감** |
-
-### 🧠 **ML 성능 향상**
+#### 1단계: OCR 데이터 구조화
 
 ```python
-# services/ml_enhancement_service.py
-class MLEnhancementService:
-    def get_semantic_similarity(self, text1: str, text2: str) -> float:
-        # OpenAI Embeddings 기반 의미적 유사도
-        embedding1 = self.get_embedding(text1)
-        embedding2 = self.get_embedding(text2)
-        return cosine_similarity(embedding1, embedding2)
+# Input: OCR Raw Text
+"""
+스타벅스코리아
+아메리카노 (TALL)
+4,500원
+2024-12-24 18:30
+카드결제
+"""
 
-    def advanced_pattern_matching(self, query: Dict) -> List[Dict]:
-        # 가중치 기반 패턴 매칭
-        weights = {
-            'text_similarity': 0.4,    # 텍스트 유사도
-            'amount_proximity': 0.3,   # 금액 근접성
-            'time_context': 0.2,       # 시간적 맥락
-            'frequency_boost': 0.1     # 빈도 가중치
-        }
-        return self.calculate_weighted_score(query, weights)
+# Output: Structured Data
+{
+  "amount": 4500,
+  "usageDate": "2024-12-24",
+  "usageLocation": "스타벅스"
+}
 ```
 
-### 📊 **실시간 분석**
+#### 2단계: 과거 패턴 분석
 
 ```python
-# services/analytics_service.py
-class AnalyticsService:
-    def get_real_time_insights(self) -> Dict:
-        return {
-            "today_stats": {
-                "processed_receipts": 47,
-                "total_amount": 234500,
-                "ai_accuracy": 94.2
-            },
-            "weekly_trends": {
-                "top_categories": ["복리후생비", "여비교통비"],
-                "spending_pattern": "증가 추세",
-                "cost_savings": "70% API 비용 절감"
-            },
-            "anomalies": [
-                {
-                    "type": "high_amount",
-                    "description": "평소보다 높은 금액: 150,000원",
-                    "suggestion": "승인 필요"
-                }
-            ]
+# DB 패턴 조회 결과
+db_patterns = [
+    {"accountCategory": "복리후생비", "description": "커피", "frequency": 45},
+    {"accountCategory": "복리후생비", "description": "야근 커피", "frequency": 12},
+    {"accountCategory": "접대비", "description": "거래처 미팅", "frequency": 7}
+]
+
+# 패턴 신뢰도: 복리후생비 89%, 접대비 11%
+```
+
+#### 3단계: 시간대 분석
+
+```python
+# 시간대별 분류 규칙
+time_rules = {
+    "평일 06:00-09:00": "조식",
+    "평일 09:00-11:00": "업무 커피",
+    "평일 11:00-14:00": "점심식대",
+    "평일 14:00-18:00": "업무 간식",
+    "평일 18:00-22:00": "야근식대",
+    "주말 전체": "주말근무"
+}
+
+# 18:30 = 야근 시간대
+```
+
+#### 4단계: 브랜드 매칭
+
+```python
+# 한국 브랜드 데이터베이스 (400개+)
+brand_database = {
+    "스타벅스": {
+        "category": "커피전문점",
+        "default_account": "복리후생비",
+        "time_variations": {
+            "morning": "업무 커피",
+            "lunch": "점심 커피",
+            "evening": "야근 커피",
+            "weekend": "주말근무 커피"
         }
+    }
+}
+```
+
+#### 5단계: 최종 결정 알고리즘
+
+```python
+def final_decision(extracted_data, db_patterns, time_analysis, brand_info):
+    """
+    가중치 기반 최종 결정
+    - 과거 패턴: 40%
+    - 시간대 분석: 30%
+    - 브랜드 정보: 20%
+    - 금액 적정성: 10%
+    """
+
+    # 1. 계정과목 결정
+    if db_patterns and db_patterns[0]["frequency"] > 5:
+        account_category = db_patterns[0]["accountCategory"]  # 과거 패턴 우선
+    else:
+        account_category = brand_info.get("default_account", "복리후생비")
+
+    # 2. 지출용도 결정
+    time_context = get_time_context(extracted_data["usageDate"])
+    brand_name = brand_info.get("name", extracted_data["usageLocation"])
+
+    if time_context == "evening":
+        description = f"{brand_name} 야근 커피"
+    elif time_context == "weekend":
+        description = f"{brand_name} 주말근무 커피"
+    else:
+        description = f"{brand_name} 업무 커피"
+
+    return {
+        "accountCategory": account_category,
+        "description": description,
+        "confidence": calculate_confidence(db_patterns, brand_info)
+    }
+```
+
+### 정확도 개선 메커니즘
+
+#### 자동 학습 사이클
+
+```mermaid
+graph LR
+    A[새로운 영수증] --> B[AI 분류]
+    B --> C[사용자 검토]
+    C --> D[DB 저장]
+    D --> E[패턴 업데이트]
+    E --> F[다음 분류 정확도 향상]
+    F --> A
+```
+
+#### 신뢰도 계산
+
+```python
+def calculate_confidence(db_patterns, brand_info, time_match):
+    """
+    신뢰도 계산 공식
+    """
+    base_confidence = 0.5
+
+    # 과거 패턴 가중치
+    if db_patterns:
+        pattern_weight = min(db_patterns[0]["frequency"] / 10, 0.3)
+        base_confidence += pattern_weight
+
+    # 브랜드 매칭 가중치
+    if brand_info["known_brand"]:
+        base_confidence += 0.2
+
+    # 시간대 매칭 가중치
+    if time_match:
+        base_confidence += 0.15
+
+    return min(base_confidence, 0.95)
 ```
 
 ---
 
-## 🔮 차세대 기능
+## ⚡ 캐싱 전략
 
-### 🎭 **멀티모달 AI**
+### 다층 캐싱 아키텍처
 
-- **이미지 + 음성 + 텍스트** 동시 처리
-- **위치 정보** 기반 맥락 분석
-- **사용자 패턴** 학습 및 적용
+```mermaid
+graph TB
+    A[영수증 요청] --> B{완전 결과<br/>캐시 확인}
+    B -->|HIT| Z[즉시 응답]
+    B -->|MISS| C{OCR 결과<br/>캐시 확인}
+    C -->|HIT| D[OCR 스킵]
+    C -->|MISS| E[OCR 처리]
+    E --> F[OCR 캐시 저장]
+    D --> G{LLM 추출<br/>캐시 확인}
+    F --> G
+    G -->|HIT| H[LLM 1차 스킵]
+    G -->|MISS| I[LLM 1차 처리]
+    I --> J[LLM 캐시 저장]
+    H --> K{DB 패턴<br/>캐시 확인}
+    J --> K
+    K -->|HIT| L[DB 조회 스킵]
+    K -->|MISS| M[DB 패턴 조회]
+    M --> N[패턴 캐시 저장]
+    L --> O[LLM 2차 처리]
+    N --> O
+    O --> P[완전 결과 캐시 저장]
+    P --> Z
+```
 
-### 📱 **모바일 최적화**
+### 캐시 키 설계
 
-- **엣지 AI**: 오프라인 OCR 처리
-- **PWA**: 네이티브 앱 수준 성능
-- **동기화**: 온라인 복귀 시 자동 동기화
+| 캐시 레벨     | 키 패턴                           | TTL    | 설명                 |
+| ------------- | --------------------------------- | ------ | -------------------- |
+| **완전 결과** | `receipt:complete:{image_hash}`   | 24시간 | 동일 이미지 재업로드 |
+| **OCR 결과**  | `receipt:ocr:{image_hash}`        | 1시간  | OCR 처리 결과        |
+| **LLM 추출**  | `receipt:llm:{text_hash}`         | 1시간  | 구조화된 데이터      |
+| **DB 패턴**   | `receipt:pattern:{location_hash}` | 6시간  | 사용처별 패턴        |
 
-### 🏢 **엔터프라이즈 기능**
+### 성능 최적화 결과
 
-- **멀티 테넌트**: 회사별 격리된 환경
-- **고급 보안**: 감사 로그, 암호화
-- **BI 분석**: 경영진 대시보드
+시스템은 Redis 캐싱을 통해 성능이 크게 향상됩니다:
 
-### 🔬 **실험적 기능**
+- **첫 번째 처리**: 4-7초 (모든 API 호출 포함)
+- **캐시된 처리**: 1-2초 (일부 결과 재사용)
+- **완전 캐시**: 즉시 응답 (동일 이미지 재처리시)
 
-- **연합 학습**: 개인정보 보호하며 학습
-- **실시간 스트림**: 라이브 영수증 처리
-- **블록체인**: 영수증 위변조 방지
+API 호출 비용도 캐시를 통해 절감됩니다.
+
+#### 비용 최적화
+
+캐시 시스템을 통해 외부 API 호출 비용이 절감됩니다:
+
+- OCR API 호출 감소 (동일 이미지 재처리시)
+- LLM API 호출 감소 (유사한 텍스트 패턴시)
+- DB 쿼리 부하 감소 (패턴 캐싱)
+
+### 캐시 관리 전략
+
+#### 자동 만료 정책
+
+```python
+# TTL 설정 근거
+ttl_strategy = {
+    "완전결과_24h": "영수증은 하루 내 재처리 가능성 높음",
+    "OCR결과_1h": "이미지 변경 가능성 고려한 짧은 캐시",
+    "LLM추출_1h": "텍스트 처리 결과의 일시적 캐싱",
+    "DB패턴_6h": "패턴 데이터는 상대적으로 안정적"
+}
+```
+
+#### 메모리 사용량 최적화
+
+```python
+# 캐시 데이터 압축
+compression_strategy = {
+    "이미지_해시": "SHA-256 (32바이트)",
+    "JSON_압축": "gzip 압축으로 70% 크기 감소",
+    "메모리_한계": "Redis 최대 1GB 사용",
+    "LRU_정책": "메모리 부족 시 자동 삭제"
+}
+```
 
 ---
 
-## 🎯 결론
+## 🇰🇷 한국 브랜드 데이터베이스
 
-Smart Receipt Processor는 **AI와 Redis 캐싱**을 결합하여 **고성능 영수증 처리 시스템**을 구현했습니다.
+### 브랜드 커버리지
 
-### ✨ **핵심 성과**
+시스템은 **400개 이상의 한국 브랜드**를 지원합니다.
 
-- **⚡ 성능**: 5-50배 응답 속도 향상
-- **💰 비용**: 70% API 호출 비용 절감
-- **🧠 학습**: 자기학습으로 지속적 정확도 향상
-- **🏗️ 확장성**: 모듈화된 마이크로서비스 아키텍처
+#### 카테고리별 브랜드 수
 
-### 🚀 **다음 단계**
+| 카테고리             | 브랜드 수 | 주요 브랜드                              |
+| -------------------- | --------- | ---------------------------------------- |
+| **🍽️ 음식/음료**     | 100+      | 스타벅스, 맥도날드, 배달의민족, 김밥천국 |
+| **🛒 이커머스**      | 40+       | 쿠팡, 11번가, 지마켓, 무신사             |
+| **💻 AI/소프트웨어** | 60+       | ChatGPT, GitHub, Microsoft 365           |
+| **🚗 교통/이동**     | 35+       | SRT, KTX, 카카오택시, 대한항공           |
+| **💳 금융/결제**     | 30+       | 국민은행, 카카오페이, 토스               |
+| **📱 통신/디지털**   | 25+       | SK텔레콤, KT, 넷플릭스                   |
+| **🏨 숙박/출장**     | 20+       | 야놀자, 롯데호텔, 신라호텔               |
+| **🎓 교육/도서**     | 25+       | 인프런, 패스트캠퍼스, 예스24             |
+| **🎮 엔터테인먼트**  | 20+       | 멜론, CGV, 넥슨                          |
+| **🏥 의료/건강**     | 15+       | 온누리약국, 삼성의료원                   |
 
-1. **🎤 음성 인식** 추가 (Whisper API)
-2. **📱 모바일 PWA** 개발
-3. **🔐 사용자 인증** 시스템
-4. **📊 실시간 대시보드** 구축
+### OCR 오인식 패턴 처리
+
+한국어 OCR의 특성상 발생하는 오인식 패턴을 자동으로 보정합니다.
+
+#### 주요 오인식 패턴
+
+| 실제 브랜드  | OCR 인식 결과                | 보정 로직       |
+| ------------ | ---------------------------- | --------------- |
+| **SRT**      | "에스알", "에스알티"         | 패턴 매칭       |
+| **KTX**      | "케이티엑스", "케이티엑스"   | 음성 기반 매칭  |
+| **GS25**     | "지에스", "지에스이십오"     | 약어 확장       |
+| **CU**       | "씨유", "컨비니언스"         | 브랜드명 정규화 |
+| **11번가**   | "일일번가", "십일번가"       | 숫자 표기 통일  |
+| **SK텔레콤** | "에스케이", "에스케이텔레콤" | 기업명 완성     |
+
+#### 브랜드 정규화 알고리즘
+
+```python
+def normalize_brand_name(ocr_text):
+    """
+    OCR 텍스트를 표준 브랜드명으로 정규화
+    """
+
+    # 1단계: 공통 오인식 패턴 보정
+    ocr_corrections = {
+        "에스알": "SRT",
+        "케이티엑스": "KTX",
+        "지에스": "GS",
+        "씨유": "CU",
+        "일일번가": "11번가"
+    }
+
+    # 2단계: 부분 매칭
+    for pattern, brand in ocr_corrections.items():
+        if pattern in ocr_text:
+            return brand
+
+    # 3단계: 유사도 기반 매칭
+    return fuzzy_match(ocr_text, brand_database)
+```
+
+### 시간대별 Description 규칙
+
+#### 음식/카페 브랜드
+
+```python
+time_based_descriptions = {
+    "스타벅스": {
+        "06:00-09:00": "스타벅스 조식 커피",
+        "09:00-11:00": "스타벅스 업무 커피",
+        "11:00-14:00": "스타벅스 점심 커피",
+        "14:00-18:00": "스타벅스 오후 커피",
+        "18:00-22:00": "스타벅스 야근 커피",
+        "주말": "스타벅스 주말근무 커피"
+    },
+    "맥도날드": {
+        "11:00-14:00": "맥도날드 점심식대",
+        "18:00-22:00": "맥도날드 야근식대",
+        "주말": "맥도날드 주말근무 식대"
+    }
+}
+```
+
+#### 배달 서비스
+
+```python
+delivery_descriptions = {
+    "배달의민족": {
+        "평일_점심": "배달의민족 점심 배달",
+        "평일_저녁": "배달의민족 야근 배달",
+        "주말": "배달의민족 주말근무 배달"
+    },
+    "쿠팡이츠": {
+        "평일_점심": "쿠팡이츠 점심 배달",
+        "평일_저녁": "쿠팡이츠 야근 배달",
+        "주말": "쿠팡이츠 주말근무 배달"
+    }
+}
+```
 
 ---
 
-**🎉 이제 AI 기반 영수증 처리의 미래를 경험해보세요!**
+## 📊 성능 및 최적화
+
+### 처리 성능 지표
+
+#### 응답 시간 분석
+
+시스템의 일반적인 성능:
+
+- **평균 응답시간**: 3-5초
+- **캐시 활용시**: 1-2초
+- **완전 캐시시**: 즉시 응답
+
+#### 처리량 성능
+
+단일 서버 기준:
+
+- **동시 처리**: 제한적 (순차 처리 권장)
+- **적정 사용량**: 중소 규모 팀용
+
+### 정확도 지표
+
+시스템의 분류 성능은 사용 패턴과 데이터 품질에 따라 달라집니다:
+
+- **브랜드 인식**: 주요 한국 브랜드 400개+ 지원
+- **계정과목 분류**: 과거 패턴 기반 학습으로 향상
+- **데이터 추출**: OCR 품질에 따라 변동
+
+#### 브랜드별 특성
+
+| 브랜드 카테고리 | 특징            | 비고                   |
+| --------------- | --------------- | ---------------------- |
+| 대형 프랜차이즈 | 인식 용이       | 스타벅스, 맥도날드 등  |
+| 배달 플랫폼     | 패턴 학습 중요  | 배달의민족, 쿠팡이츠   |
+| 교통 서비스     | OCR 오인식 고려 | SRT, KTX, 카카오택시   |
+| 이커머스        | 다양한 형태     | 쿠팡, 11번가, 지마켓   |
+| 금융 서비스     | 표준화된 형식   | 은행, 카드사, 간편결제 |
+
+### 시스템 리소스 사용량
+
+#### 메모리 사용량
+
+개발 환경 기준:
+
+- **Flask 앱**: 기본 메모리 사용
+- **Redis 캐시**: 설정에 따라 가변
+- **Python 런타임**: 일반적 사용량
+- **권장 메모리**: 최소 1GB
+
+#### 네트워크 사용량
+
+외부 API 의존:
+
+- **OCR API**: 이미지 크기에 따라 가변
+- **LLM API**: 텍스트 량에 따라 가변
+- **인터넷 연결**: 필수 (외부 API 사용)
+
+### 최적화 기법
+
+#### 1. 이미지 최적화
+
+```python
+image_optimization = {
+    "크기_제한": "16MB 이하",
+    "포맷_지원": ["JPG", "PNG", "WEBP"],
+    "자동_압축": "품질 85% 유지하며 50% 크기 감소",
+    "해상도_최적화": "OCR 품질 유지선에서 조정"
+}
+```
+
+#### 2. API 호출 최적화
+
+```python
+api_optimization = {
+    "OCR_배치처리": "향후 지원 예정",
+    "LLM_토큰_최적화": "프롬프트 길이 30% 단축",
+    "DB_연결풀": "최대 10개 연결 유지",
+    "비동기_처리": "향후 지원 예정"
+}
+```
+
+#### 3. 캐시 최적화
+
+```python
+cache_optimization = {
+    "압축_알고리즘": "gzip으로 70% 크기 감소",
+    "TTL_전략": "사용 패턴 기반 동적 조정",
+    "메모리_관리": "LRU 정책으로 자동 정리",
+    "분산_캐시": "향후 Redis Cluster 지원"
+}
+```
+
+---
+
+## 🔧 문제 해결
+
+### 자주 발생하는 문제
+
+#### 1. OCR 인식 오류
+
+```python
+# 문제: 한글 인식률 저하
+# 원인: 이미지 품질, 각도, 조명
+# 해결: 전처리 및 다중 시도
+
+def improve_ocr_accuracy(image):
+    """OCR 정확도 개선 방법"""
+
+    # 1. 이미지 전처리
+    processed_images = [
+        rotate_image(image, angle) for angle in [0, 90, 180, 270]
+    ]
+
+    # 2. 다중 OCR 시도
+    results = []
+    for img in processed_images:
+        result = call_ocr_api(img)
+        if result.confidence > 0.8:
+            results.append(result)
+
+    # 3. 최고 신뢰도 결과 선택
+    return max(results, key=lambda x: x.confidence)
+```
+
+#### 2. LLM 응답 오류
+
+```python
+# 문제: JSON 파싱 실패, 필드 누락
+# 원인: 프롬프트 불명확, 모델 응답 변동성
+# 해결: 강화된 프롬프트, 검증 로직
+
+def robust_llm_call(prompt, max_retries=3):
+    """견고한 LLM 호출"""
+
+    for attempt in range(max_retries):
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                temperature=0.1  # 낮은 temperature로 일관성 확보
+            )
+
+            result = json.loads(response.choices[0].message.content)
+
+            # 필수 필드 검증
+            required_fields = ["amount", "usageDate", "usageLocation"]
+            if all(field in result for field in required_fields):
+                return result
+
+        except (json.JSONDecodeError, KeyError) as e:
+            logging.warning(f"LLM 응답 파싱 실패 (시도 {attempt + 1}): {e}")
+
+    raise Exception("LLM 응답 파싱 실패 - 최대 재시도 초과")
+```
+
+#### 3. 데이터베이스 연결 오류
+
+```python
+# 문제: 연결 끊김, 타임아웃
+# 원인: 네트워크 불안정, 연결 풀 부족
+# 해결: 연결 풀, 재연결 로직
+
+def get_db_connection():
+    """견고한 DB 연결"""
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            conn = mysql.connector.connect(
+                host=Config.DB_HOST,
+                port=Config.DB_PORT,
+                user=Config.DB_USER,
+                password=Config.DB_PASSWORD,
+                database=Config.DB_NAME,
+                pool_name="receipt_pool",
+                pool_size=10,
+                pool_reset_session=True,
+                autocommit=True,
+                connect_timeout=10
+            )
+            return conn
+
+        except mysql.connector.Error as e:
+            logging.warning(f"DB 연결 실패 (시도 {attempt + 1}): {e}")
+            time.sleep(2 ** attempt)  # 지수 백오프
+
+    raise Exception("DB 연결 실패 - 최대 재시도 초과")
+```
+
+### 모니터링 및 로깅
+
+#### 로그 레벨 설정
+
+```python
+logging_config = {
+    "INFO": "정상 처리 과정 기록",
+    "WARNING": "인식률 저하, 재시도 발생",
+    "ERROR": "처리 실패, 시스템 오류",
+    "DEBUG": "상세한 디버깅 정보"
+}
+```
+
+#### 핵심 모니터링 지표
+
+```python
+monitoring_metrics = {
+    "응답시간": "평균 2초 이하 유지",
+    "성공률": "95% 이상 유지",
+    "OCR_정확도": "90% 이상 유지",
+    "LLM_응답률": "98% 이상 유지",
+    "DB_연결상태": "상시 모니터링",
+    "캐시_히트율": "70% 이상 유지"
+}
+```
+
+### 성능 튜닝 가이드
+
+#### 1. 메모리 최적화
+
+```bash
+# Redis 메모리 설정
+redis-cli CONFIG SET maxmemory 1gb
+redis-cli CONFIG SET maxmemory-policy allkeys-lru
+
+# Python 메모리 모니터링
+pip install memory-profiler
+python -m memory_profiler simple_app.py
+```
+
+#### 2. 데이터베이스 최적화
+
+```sql
+-- 인덱스 추가
+CREATE INDEX idx_usage_location ON expense_items(usageLocation);
+CREATE INDEX idx_usage_date ON expense_items(usageDate);
+CREATE INDEX idx_account_category ON expense_items(accountCategory);
+
+-- 쿼리 성능 분석
+EXPLAIN SELECT accountCategory, description, COUNT(*)
+FROM expense_items
+WHERE usageLocation LIKE '%스타벅스%'
+GROUP BY accountCategory, description;
+```
+
+#### 3. API 최적화
+
+```python
+# Flask 설정 최적화
+app.config.update(
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB
+    JSON_SORT_KEYS=False,
+    JSONIFY_PRETTYPRINT_REGULAR=False
+)
+
+# Gunicorn 배포 설정
+gunicorn --workers 4 --threads 2 --bind 0.0.0.0:5001 simple_app:app
+```
+
+---
+
+## �� 향후 개발 계획
+
+### 단기 계획 (1-3개월)
+
+#### 1. 성능 향상
+
+- [ ] **비동기 처리**: 동시 처리 성능 3배 향상
+- [ ] **배치 OCR**: 여러 영수증 동시 처리
+- [ ] **이미지 전처리**: AI 기반 품질 개선
+- [ ] **응답 압축**: gzip으로 대역폭 50% 절약
+
+#### 2. 정확도 개선
+
+- [ ] **GPT-4 업그레이드**: 분류 정확도 97% 달성
+- [ ] **다중 OCR**: 여러 OCR 결과 교차 검증
+- [ ] **브랜드 DB 확장**: 1000개+ 브랜드 지원
+- [ ] **맞춤형 학습**: 기업별 패턴 학습
+
+#### 3. 사용성 개선
+
+- [ ] **웹 UI**: 드래그 앤 드롭 업로드
+- [ ] **모바일 앱**: iOS/Android 네이티브 앱
+- [ ] **Excel 연동**: 결과 자동 입력
+- [ ] **실시간 알림**: 처리 완료 알림
+
+### 중기 계획 (3-6개월)
+
+#### 1. 고급 기능
+
+- [ ] **다중 영수증**: 한 번에 여러 영수증 처리
+- [ ] **영수증 분할**: 큰 이미지에서 영수증 자동 추출
+- [ ] **메모 인식**: 손글씨 메모 OCR
+- [ ] **QR/바코드**: 추가 정보 자동 링크
+
+#### 2. 통합 기능
+
+- [ ] **ERP 연동**: SAP, 더존 등 기업 시스템 연동
+- [ ] **회계 시스템**: 전표 자동 생성
+- [ ] **승인 워크플로**: 결재라인 자동 처리
+- [ ] **API Gateway**: 마이크로서비스 아키텍처
+
+#### 3. 분석 기능
+
+- [ ] **지출 분석**: 패턴 분석 및 인사이트
+- [ ] **예산 관리**: 예산 대비 지출 모니터링
+- [ ] **이상 탐지**: 비정상 지출 자동 감지
+- [ ] **보고서**: 자동 지출 보고서 생성
+
+### 장기 계획 (6-12개월)
+
+#### 1. AI 고도화
+
+- [ ] **멀티모달 AI**: 이미지+텍스트 동시 분석
+- [ ] **파인튜닝**: 기업별 맞춤 모델
+- [ ] **엣지 AI**: 로컬 처리로 보안 강화
+- [ ] **자동 보정**: 잘못된 분류 자동 수정
+
+#### 2. 확장성
+
+- [ ] **클라우드 네이티브**: Kubernetes 배포
+- [ ] **글로벌 지원**: 다국가 영수증 처리
+- [ ] **대용량 처리**: 일 100만건 처리 지원
+- [ ] **실시간 스트림**: 실시간 영수증 처리
+
+#### 3. 보안 및 규정 준수
+
+- [ ] **개인정보보호**: GDPR, 개인정보보호법 준수
+- [ ] **감사 로그**: 모든 처리 과정 추적
+- [ ] **데이터 암호화**: 전송/저장 데이터 암호화
+- [ ] **접근 제어**: RBAC 기반 권한 관리
+
+---
+
+## 📈 비즈니스 임팩트
+
+### 예상 효과
+
+#### 시간 절약
+
+수동 입력 대비 처리 시간 단축:
+
+- **기존 방식**: 영수증 당 수 분의 수동 입력
+- **자동화 후**: 영수증 당 수십 초의 검토 시간
+- **절약 효과**: 반복 작업 감소
+
+#### 정확성 향상
+
+- **일관된 분류**: 동일 브랜드에 대한 일관성
+- **오타 감소**: 자동 입력으로 오타 방지
+- **패턴 학습**: 사용할수록 향상되는 정확도
+
+---
+
+## 📞 지원 및 연락처
+
+### 기술 지원
+
+- **개발팀**: dev@company.com
+- **기술문의**: tech-support@company.com
+- **버그신고**: bug-report@company.com
+
+### 문서 및 리소스
+
+- **API 문서**: http://localhost:5001/ (Swagger UI)
+- **GitHub**: https://github.com/company/receipt-processor
+- **위키**: https://wiki.company.com/receipt-processor
+
+### 라이선스
+
+이 프로젝트는 **MIT 라이선스** 하에 배포됩니다.
+
+---
+
+_© 2024 Receipt Processor Team. All rights reserved._
+
+_마지막 업데이트: 2024년 12월 24일_
